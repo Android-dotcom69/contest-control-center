@@ -4,8 +4,10 @@ import Dashboard from './pages/Dashboard'
 import Participants from './pages/Participants'
 import Submissions from './pages/Submissions'
 import Leaderboard from './pages/Leaderboard'
+import { useSimulator } from './hooks/useSimulator'
 
 function App() {
+  useSimulator()
   return (
     <BrowserRouter>
       <Routes>

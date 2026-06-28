@@ -57,6 +57,23 @@ export const useSubmissionStore = create((set, get) => ({
       message: `${name} submitted Problem ${problem} — ${fmt(submission.verdict)}`,
     })
   },
+
+  resolveSubmission: (submissionId, verdict) => {
+    const target = get().submissions.find(s => s.id === submissionId)
+    set(state => ({
+      submissions: state.submissions.map(s =>
+        s.id === submissionId ? { ...s, verdict } : s
+      ),
+    }))
+    if (target) {
+      const name    = participantMap[target.participantId] ?? target.participantId
+      const problem = problemMap[target.problemId] ?? target.problemId
+      useActivityStore.getState().addActivity({
+        type: 'submission_received',
+        message: `${name} submitted Problem ${problem} — ${fmt(verdict)}`,
+      })
+    }
+  },
 }))
 
 function fmt(v) {

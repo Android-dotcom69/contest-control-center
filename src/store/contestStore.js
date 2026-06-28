@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { contest } from '../data/contest'
 import { calculateLeaderboard } from '../lib/ranking'
+import { useActivityStore } from './activityStore'
 
 export const useContestStore = create((set, get) => ({
   contest: { ...contest },
@@ -11,12 +12,18 @@ export const useContestStore = create((set, get) => ({
     const { isFrozen } = get()
 
     if (!isFrozen) {
-      // Freezing — take a snapshot of current live leaderboard
       const snapshot = calculateLeaderboard(submissions, participants, contest.startTime)
       set({ isFrozen: true, frozenSnapshot: snapshot })
+      useActivityStore.getState().addActivity({
+        type: 'leaderboard_frozen',
+        message: 'Leaderboard has been frozen — rankings locked for final phase',
+      })
     } else {
-      // Unfreezing — clear snapshot, live data takes over
       set({ isFrozen: false, frozenSnapshot: null })
+      useActivityStore.getState().addActivity({
+        type: 'leaderboard_unfrozen',
+        message: 'Leaderboard unfrozen — live rankings restored',
+      })
     }
   },
 
