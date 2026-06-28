@@ -151,12 +151,12 @@ export default function Layout() {
 
         {/* Keyboard shortcut hint */}
         {!isMobile && (
-          <div style={{ padding: '0 14px 8px', fontSize: '10px', color: 'var(--text-muted)' }}>
-            <div style={{ borderTop: '1px solid var(--nav-sep)', paddingTop: '8px' }}>
-              <div style={{ marginBottom: '3px', fontWeight: 600 }}>Shortcuts</div>
-              <div>Ctrl+1–4 Navigate</div>
-              <div>T Toggle theme</div>
-              <div>F Freeze toggle</div>
+          <div style={{ padding: '0 14px 8px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <div style={{ borderTop: '1px solid var(--nav-sep)', paddingTop: '10px' }}>
+              <div style={{ marginBottom: '6px', fontWeight: 700, color: 'var(--text-accent)', letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: '10px' }}>Shortcuts</div>
+              <div style={{ marginBottom: '3px' }}>Ctrl+1–4 &nbsp;Navigate</div>
+              <div style={{ marginBottom: '3px' }}>T &nbsp;Toggle theme</div>
+              <div>F &nbsp;Freeze toggle</div>
             </div>
           </div>
         )}
