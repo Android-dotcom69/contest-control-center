@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useContestStats } from '../hooks/useContestStats'
+import { useIsMobile } from '../hooks/useIsMobile'
 import StatsCard from '../components/dashboard/StatsCard'
 import ContestTimer from '../components/dashboard/ContestTimer'
 import ActivityFeedPreview from '../components/dashboard/ActivityFeedPreview'
@@ -24,6 +25,7 @@ const WIDGET_DEFS = [
 
 export default function Dashboard() {
   const stats = useContestStats()
+  const isMobile = useIsMobile()
   const acceptRate = stats.totalSubmissions > 0
     ? ((stats.accepted / stats.totalSubmissions) * 100).toFixed(1)
     : '0.0'
@@ -74,12 +76,12 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0,1fr))' : 'repeat(3, minmax(0, 1fr))', gap: '14px' }}>
         {cards.map(c => <StatsCard key={c.label} {...c} />)}
       </div>
 
-      {/* Row 2: Draggable widgets — hint shown on the first card */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: '14px' }}>
+      {/* Row 2: Draggable widgets */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))', gap: '14px' }}>
         {order.map((id) => (
           <div key={id}
             draggable
@@ -102,7 +104,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 3: Timer + Solve Rate */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2.5fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1fr) minmax(0,2.5fr)', gap: '14px' }}>
         <ContestTimer />
         <ProgressOverview />
       </div>

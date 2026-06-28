@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useContestStore } from '../../store/contestStore'
 import { useThemeStore } from '../../store/themeStore'
 import { useSubmissionStore } from '../../store/submissionStore'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { participants } from '../../data/participants'
 
 const NAV = [
@@ -46,6 +47,12 @@ const MoonIcon = () => (
   </svg>
 )
 
+const HamburgerIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+)
+
 export default function Layout() {
   const isFrozen      = useContestStore(s => s.isFrozen)
   const toggleFreeze  = useContestStore(s => s.toggleFreeze)
@@ -53,7 +60,12 @@ export default function Layout() {
   const { isDark, toggleTheme } = useThemeStore()
   const location      = useLocation()
   const navigate      = useNavigate()
+  const isMobile      = useIsMobile()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const pageLabel     = NAV.find(n => location.pathname.startsWith(n.to))?.label ?? 'Dashboard'
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
 
   // ── Keyboard shortcuts ─────────────────────────────────────
   useEffect(() => {
@@ -71,8 +83,18 @@ export default function Layout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [navigate, toggleTheme, toggleFreeze, submissions])
 
+  const sidebarVisible = !isMobile || sidebarOpen
+
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'transparent' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'transparent', position: 'relative' }}>
+
+      {/* ── Mobile overlay backdrop ── */}
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 19,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)',
+        }} />
+      )}
 
       {/* ── Sidebar ── */}
       <aside style={{
@@ -80,8 +102,12 @@ export default function Layout() {
         background: 'var(--sidebar-bg)',
         backdropFilter: 'blur(20px)',
         borderRight: '1px solid var(--card-border)',
-        zIndex: 10,
-        transition: 'background 0.3s',
+        zIndex: 20,
+        transition: 'transform 0.25s ease, background 0.3s',
+        ...(isMobile ? {
+          position: 'fixed', top: 0, left: 0, height: '100vh',
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        } : {}),
       }}>
         {/* Logo */}
         <div style={{ padding: '18px 14px', borderBottom: '1px solid var(--nav-sep)' }}>
@@ -124,15 +150,16 @@ export default function Layout() {
         </nav>
 
         {/* Keyboard shortcut hint */}
-        <div style={{ padding: '0 14px 8px', fontSize: '10px', color: 'var(--text-muted)' }}>
-          <div style={{ borderTop: '1px solid var(--nav-sep)', paddingTop: '8px' }}>
-            <div style={{ marginBottom: '3px', fontWeight: 600 }}>Shortcuts</div>
-            <div>Ctrl+1–4 Navigate</div>
-            <div>T Toggle theme</div>
-            <div>F Freeze toggle</div>
-            <div>T Toggle theme</div>
+        {!isMobile && (
+          <div style={{ padding: '0 14px 8px', fontSize: '10px', color: 'var(--text-muted)' }}>
+            <div style={{ borderTop: '1px solid var(--nav-sep)', paddingTop: '8px' }}>
+              <div style={{ marginBottom: '3px', fontWeight: 600 }}>Shortcuts</div>
+              <div>Ctrl+1–4 Navigate</div>
+              <div>T Toggle theme</div>
+              <div>F Freeze toggle</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Status chip */}
         <div style={{ padding: '10px 10px 14px' }}>
@@ -156,22 +183,34 @@ export default function Layout() {
         <header style={{
           height: '54px', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 22px',
+          padding: '0 16px',
           background: 'var(--topbar-bg)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid var(--card-border)',
           transition: 'background 0.3s',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Contest</span>
-            <span style={{ color: 'rgba(139,92,246,0.3)' }}>/</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{pageLabel}</span>
-          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {isFrozen && (
-              <span style={{ fontSize: '12px', fontWeight: 600, padding: '4px 12px', borderRadius: '20px', background: 'rgba(59,130,246,0.12)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.25)' }}>🔒 Frozen</span>
+            {/* Hamburger on mobile */}
+            {isMobile && (
+              <button onClick={() => setSidebarOpen(o => !o)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer',
+                background: 'rgba(139,92,246,0.1)', color: 'var(--text-primary)',
+                border: '1px solid rgba(139,92,246,0.2)',
+              }}>
+                <HamburgerIcon />
+              </button>
             )}
-            {/* Theme toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Contest</span>
+              <span style={{ color: 'rgba(139,92,246,0.3)' }}>/</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{pageLabel}</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isFrozen && (
+              <span style={{ fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '20px', background: 'rgba(59,130,246,0.12)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.25)' }}>🔒 Frozen</span>
+            )}
             <button onClick={toggleTheme} title="Toggle theme (T)" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer',
@@ -183,19 +222,19 @@ export default function Layout() {
             </button>
             <span style={{
               display: 'flex', alignItems: 'center', gap: '6px',
-              fontSize: '12px', fontWeight: 700, padding: '4px 14px', borderRadius: '20px',
+              fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '20px',
               background: 'rgba(16,185,129,0.12)', color: '#34D399',
               border: '1px solid rgba(16,185,129,0.28)',
               boxShadow: '0 0 14px rgba(16,185,129,0.18)',
             }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34D399', boxShadow: '0 0 8px #34D399', display: 'inline-block' }} />
-              LIVE
+              {!isMobile && 'LIVE'}
             </span>
           </div>
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', padding: '22px' }}>
+        <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '14px' : '22px' }}>
           <Outlet />
         </main>
       </div>

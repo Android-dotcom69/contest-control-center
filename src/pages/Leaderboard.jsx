@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useContestStore } from '../store/contestStore'
+import { useIsMobile } from '../hooks/useIsMobile'
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable'
 import FreezeToggle from '../components/leaderboard/FreezeToggle'
 import { formatPenalty } from '../lib/formatters'
@@ -14,6 +15,7 @@ const PODIUM = [
 export default function Leaderboard() {
   const leaderboard = useLeaderboard()
   const isFrozen    = useContestStore(s => s.isFrozen)
+  const isMobile    = useIsMobile()
   const [search, setSearch] = useState('')
 
   const filtered = search.trim()
@@ -55,8 +57,8 @@ export default function Leaderboard() {
       <FreezeToggle />
 
       {!search && leaderboard.length >= 3 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: '12px', alignItems: 'flex-end' }}>
-          {PODIUM.map(({ idx, medal, border, glow, mt, scale }) => {
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))', gap: '12px', alignItems: isMobile ? 'stretch' : 'flex-end' }}>
+          {(isMobile ? [...PODIUM].sort((a,b) => a.idx - b.idx) : PODIUM).map(({ idx, medal, border, glow, mt, scale }) => {
             const entry = leaderboard[idx]
             if (!entry) return null
             return (
