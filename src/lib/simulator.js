@@ -23,29 +23,17 @@ function randBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-// Returns the next problem a participant should work on.
-// They must solve problems in order — they can only attempt the first
-// unsolved problem, or retry a problem they've failed before.
+// Returns a random unsolved problem for the participant.
+// Participants can attempt any problem in any order (no sequential constraint).
 function getNextProblemId(participantId, submissions) {
-  const mySubmissions = submissions.filter(s => s.participantId === participantId)
   const solved = new Set(
-    mySubmissions.filter(s => s.verdict === 'accepted').map(s => s.problemId)
+    submissions
+      .filter(s => s.participantId === participantId && s.verdict === 'accepted')
+      .map(s => s.problemId)
   )
-
-  // Find the first problem (in order A→H) that isn't solved yet
-  const nextUnsolved = problems.find(p => !solved.has(p.id))
-  if (!nextUnsolved) return null // solved everything
-
-  // They might also be retrying the previous problem (already failed it)
-  const hasFailed = mySubmissions.some(
-    s => s.problemId === nextUnsolved.id &&
-         ['wrong_answer', 'time_limit_exceeded', 'runtime_error'].includes(s.verdict)
-  )
-
-  // 70% chance to attempt the next unsolved, 30% chance to retry a failed one
-  // (but only retry if they've actually failed it before)
-  if (hasFailed && Math.random() < 0.3) return nextUnsolved.id
-  return nextUnsolved.id
+  const unsolved = problems.filter(p => !solved.has(p.id))
+  if (!unsolved.length) return null
+  return pick(unsolved).id
 }
 
 export function startSimulator() {
