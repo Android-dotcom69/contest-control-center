@@ -1,23 +1,15 @@
 import { useContestStore } from '../../store/contestStore'
 import { useSubmissionStore } from '../../store/submissionStore'
 import { useParticipantStore } from '../../store/participantStore'
-import { useActivityStore } from '../../store/activityStore'
 
 export default function FreezeToggle() {
   const isFrozen     = useContestStore(s => s.isFrozen)
   const toggleFreeze = useContestStore(s => s.toggleFreeze)
   const submissions  = useSubmissionStore(s => s.submissions)
   const participants = useParticipantStore(s => s.participants)
-  const addActivity  = useActivityStore(s => s.addActivity)
 
   function handleToggle() {
     toggleFreeze(submissions, participants)
-    addActivity({
-      type: isFrozen ? 'leaderboard_unfrozen' : 'leaderboard_frozen',
-      message: isFrozen
-        ? 'Leaderboard unfrozen — rankings updated with all submissions'
-        : 'Leaderboard frozen — rankings locked for final phase',
-    })
   }
 
   return (

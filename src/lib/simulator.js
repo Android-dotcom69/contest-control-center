@@ -3,7 +3,6 @@ import { problems } from '../data/problems'
 import { useSubmissionStore } from '../store/submissionStore'
 
 const PARTICIPANT_IDS = participants.map(p => p.id)
-const PROBLEM_IDS     = problems.map(p => p.id)
 const LANGUAGES       = ['C++', 'Python', 'Java', 'C']
 
 // Weighted verdicts — AC ~35%, WA ~38%, TLE ~15%, RE ~12%
@@ -22,6 +21,31 @@ function pick(arr) {
 
 function randBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+// Returns the next problem a participant should work on.
+// They must solve problems in order — they can only attempt the first
+// unsolved problem, or retry a problem they've failed before.
+function getNextProblemId(participantId, submissions) {
+  const mySubmissions = submissions.filter(s => s.participantId === participantId)
+  const solved = new Set(
+    mySubmissions.filter(s => s.verdict === 'accepted').map(s => s.problemId)
+  )
+
+  // Find the first problem (in order A→H) that isn't solved yet
+  const nextUnsolved = problems.find(p => !solved.has(p.id))
+  if (!nextUnsolved) return null // solved everything
+
+  // They might also be retrying the previous problem (already failed it)
+  const hasFailed = mySubmissions.some(
+    s => s.problemId === nextUnsolved.id &&
+         ['wrong_answer', 'time_limit_exceeded', 'runtime_error'].includes(s.verdict)
+  )
+
+  // 70% chance to attempt the next unsolved, 30% chance to retry a failed one
+  // (but only retry if they've actually failed it before)
+  if (hasFailed && Math.random() < 0.3) return nextUnsolved.id
+  return nextUnsolved.id
 }
 
 export function startSimulator() {
@@ -43,15 +67,22 @@ export function startSimulator() {
 }
 
 function spawnSubmission() {
+  const submissions   = useSubmissionStore.getState().submissions
+  const participantId = pick(PARTICIPANT_IDS)
+  const problemId     = getNextProblemId(participantId, submissions)
+
+  // Skip if they've already solved everything
+  if (!problemId) return
+
   const id = `sim${String(++_counter).padStart(4, '0')}`
   const submission = {
     id,
-    participantId:  pick(PARTICIPANT_IDS),
-    problemId:      pick(PROBLEM_IDS),
-    submissionTime: new Date().toISOString(),
-    verdict:        'running',
-    language:       pick(LANGUAGES),
-    isRejudged:     false,
+    participantId,
+    problemId,
+    submissionTime:  new Date().toISOString(),
+    verdict:         'running',
+    language:        pick(LANGUAGES),
+    isRejudged:      false,
     originalVerdict: null,
   }
 
