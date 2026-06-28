@@ -186,17 +186,14 @@ Mock Data (src/data/)
 ### Dashboard
 ![Dashboard](./screenshots/dashboard.png)
 
-### Leaderboard
-![Leaderboard](./screenshots/leaderboard.png)
+### Participants
+![Participants](./screenshots/participants.png)
 
 ### Submissions
 ![Submissions](./screenshots/submissions.png)
 
-### Participants
-![Participants](./screenshots/participants.png)
-
-### Light Mode
-![Light Mode](./screenshots/light-mode.png)
+### Leaderboard
+![Leaderboard](./screenshots/leaderboard.png)
 
 ---
 
